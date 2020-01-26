@@ -2,16 +2,11 @@ import cv2
 import numpy as np
 import copy
 import math
-import time
 import pyautogui as pag
 # from appscript import app
 from scipy.spatial import distance as dist
-from imutils.video import FileVideoStream
-from imutils.video import VideoStream
 from imutils import face_utils
 import argparse
-import imutils
-import time
 import dlib
 
 
@@ -49,6 +44,7 @@ threshold = 60  # BINARY threshold
 blurValue = 41  # GaussianBlur parameter
 bgSubThreshold = 50
 learningRate = 0
+mouse_position = [0, 0]
 
 pag.FAILSAFE = False
 
@@ -174,6 +170,8 @@ while camera.isOpened():
                 # then increment the total number of blinks
                 if COUNTER >= EYE_AR_CONSEC_FRAMES:
                     TOTAL += 1
+                    pag.leftClick(mouse_position[0], mouse_position[1])
+                    print('LEFT CLICK')
 
                 # reset the eye frame counter
                 COUNTER = 0
