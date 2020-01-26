@@ -6,11 +6,6 @@ import time
 import pyautogui as pag
 #from appscript import app
 
-# Environment:
-# OS    : Mac OS EL Capitan
-# python: 3.5
-# opencv: 2.4.13
-
 # parameters
 cap_region_x_begin=0  # start point/total width
 cap_region_y_end=1  # start point/total width
@@ -24,6 +19,10 @@ pag.FAILSAFE = False
 # variables
 isBgCaptured = 0   # bool, whether the background captured
 triggerSwitch = False  # if true, keyboard simulator works
+mouseSwitch = False
+
+img = cv2.imread('resources\\CamMouse.PNG',0)
+cv2.imshow('Logo', img)
 
 def printThreshold(thr):
     print("! Changed threshold to "+str(thr))
@@ -86,14 +85,14 @@ while camera.isOpened():
             img = removeBG(frame)
             img = img[0:int(cap_region_y_end * frame.shape[0]),
                         int(cap_region_x_begin * frame.shape[1]):frame.shape[1]]  # clip the ROI
-            cv2.imshow('mask', img)
+            #cv2.imshow('mask', img)
 
             # convert the image into binary image
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
-            cv2.imshow('blur', blur)
+            #cv2.imshow('blur', blur)
             ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
-            cv2.imshow('ori', thresh)
+            #cv2.imshow('ori', thresh)
 
 
             # get the coutours
@@ -151,22 +150,18 @@ while camera.isOpened():
                 if (mouse_position[1] > screen_size[1] - 1):
                     mouse_position[1] = screen_size[1] - 1
 
+                isFinishCal, cnt = calculateFingers(res, drawing)
+
                 #time.sleep(1)
-                pag.moveTo(mouse_position[0], mouse_position[1])
+                if (mouseSwitch):
+                    pag.moveTo(mouse_position[0], mouse_position[1])
 
-                isFinishCal,cnt = calculateFingers(res,drawing)
-
-                if (cnt > 1 and cnt < 4):
-                    pag.leftClick(mouse_position[0], mouse_position[1])
-                    print('LEFT CLICK')
-                elif (cnt >= 4):
-                    pag.rightClick(mouse_position[0], mouse_position[1])
-                    print('RIGHT CLICK')
-                if triggerSwitch is True:
-                    if isFinishCal is True and cnt <= 2:
-                        print (cnt)
-                        #app('System Events').keystroke(' ')  # simulate pressing blank space
-
+                    if (cnt > 1 and cnt < 4):
+                        pag.leftClick(mouse_position[0], mouse_position[1])
+                        print('LEFT CLICK')
+                    elif (cnt >= 4):
+                        pag.rightClick(mouse_position[0], mouse_position[1])
+                        print('RIGHT CLICK')
 
             cv2.imshow('output', drawing)
 
@@ -179,14 +174,14 @@ while camera.isOpened():
         elif k == ord('b'):  # press 'b' to capture the background
             bgModel = cv2.createBackgroundSubtractorMOG2(0, bgSubThreshold)
             isBgCaptured = 1
-            print( '!!!Background Captured!!!')
+            print( 'Background Captured')
         elif k == ord('r'):  # press 'r' to reset the background
             bgModel = None
             triggerSwitch = False
             isBgCaptured = 0
-            print ('!!!Reset BackGround!!!')
-        elif k == ord('n'):
-            triggerSwitch = True
-            print ('!!!Trigger On!!!')
+            print ('Reset BackGround')
+        elif k == ord('m'):  # press 'r' to reset the background
+            mouseSwitch = True
+            print ('Activating Mouse')
     except AttributeError as error:
         print(error)
