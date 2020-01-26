@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import copy
 import math
+import time
+import pyautogui as pag
 #from appscript import app
 
 # Environment:
@@ -10,12 +12,14 @@ import math
 # opencv: 2.4.13
 
 # parameters
-cap_region_x_begin=0.5  # start point/total width
-cap_region_y_end=0.8  # start point/total width
+cap_region_x_begin=0  # start point/total width
+cap_region_y_end=1  # start point/total width
 threshold = 60  #  BINARY threshold
 blurValue = 41  # GaussianBlur parameter
 bgSubThreshold = 50
 learningRate = 0
+
+pag.FAILSAFE = False
 
 # variables
 isBgCaptured = 0   # bool, whether the background captured
@@ -108,11 +112,56 @@ while camera.isOpened():
                 res = contours[ci]
                 hull = cv2.convexHull(res)
                 drawing = np.zeros(img.shape, np.uint8)
+                #print([res])
+                #print(type(res))
                 cv2.drawContours(drawing, [res], 0, (0, 255, 0), 2)
                 cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
-                cv2.findContours(drawing, )
+
+                point = np.mean(res, axis=0)
+                #print(type(point))
+                #print(point)
+                #print(point[0][0])
+
+                point1 = (int(point[0][0]), int(point[0][1]))
+                #print(type(point))
+                #print(point)
+                #print(point.len())
+                max_y = 0
+                max_x = 0
+
+                for i in res[0]:
+                    #print(i[1], i[0])
+                    if max_y < i[1]:
+                        max_y = i[1]
+                    if max_x < i[0]:
+                        max_x = i[0]
+
+                cv2.circle(drawing, point1, 10, (0,0,255))
+                cv2.circle(drawing, (int(max_x), int(max_y)), 10, (0, 0, 255))
+
+                screen_size = pag.size()
+
+                mouse_position = [int(max_x), int(max_y)]
+                mouse_position[1] -= 70
+
+                mouse_position[0] *= screen_size[0] / 610
+                if (mouse_position[0] > screen_size[0] - 1):
+                    mouse_position[0] = screen_size[0] - 1
+                mouse_position[1] *= screen_size[1] / 270
+                if (mouse_position[1] > screen_size[1] - 1):
+                    mouse_position[1] = screen_size[1] - 1
+
+                #time.sleep(1)
+                pag.moveTo(mouse_position[0], mouse_position[1])
 
                 isFinishCal,cnt = calculateFingers(res,drawing)
+
+                if (cnt > 1 and cnt < 4):
+                    pag.leftClick(mouse_position[0], mouse_position[1])
+                    print('LEFT CLICK')
+                elif (cnt >= 4):
+                    pag.rightClick(mouse_position[0], mouse_position[1])
+                    print('RIGHT CLICK')
                 if triggerSwitch is True:
                     if isFinishCal is True and cnt <= 2:
                         print (cnt)
